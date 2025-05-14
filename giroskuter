@@ -1,1 +1,86 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+using namespace std;
+//класс товаров из которых создаётся заказ
+class Product {
+private:
+    int _id;
+    string _name;
+    double _price;
+public:
+    Product(int id, const string& name, double price) : _id(id), _name(name), _price(price) {}
+    Product() = default;
+    ~Product() {};
+
+    int getId() const { return _id; }
+    string getName() const { return _name; }
+    double getPrice() const { return _price; }
+    // Операторы ввода и вывода для продукта
+    friend istream& operator>>(istream& in, Product& p) {
+        string q;
+        in >> p._id;
+        in>> p._name;
+        in>> p._price;
+        return in;
+    }
+    friend ostream& operator<<(ostream& out, const Product& p) {
+        out  << p._id << " " << p._name << " " << p._price;
+        return out;
+    }
+};
+//функция считывания из файла
+template <typename T>
+void ReadFile(const string& filename, vector<T>& ar) {
+    ifstream in(filename);
+    if (!in.is_open())
+        return;
+    int n;
+    in >> n;
+    ar.resize(n);
+    if (n != 0) {
+        for (int i = 0;i < n;i++) {
+            in >> ar[i];
+        }
+    }
+    in.close();
+}
+//функция записи в файл
+template <typename T>
+void writefile(const string& filename, vector<T>& ar) {
+    ofstream out(filename);
+    if (!out.is_open())
+        return;
+    out << ar.size() << endl;
+    for (const auto& i : ar) {
+        out << i << endl;
+    }
+    out.close();
+}
+//функция показывающая все доступные товары
+void showProduct() {
+    vector<Product> products;
+    ReadFile("Product.txt", products);
+        cout << "\n=== list ===\n";
+        for (const auto& product : products) {
+            cout << "  id " << product.getId() << ":\n";
+            cout << "  name:" << product.getName() << endl;
+            cout << "  price:" << product.getPrice() <<"\n"<< endl;
+            
+        }
+    
+}
+//функция добавления товаров
+void addProduct() {
+    vector<Product> products;
+    ReadFile("Product.txt", products);
+    Product newProduct;
+    cout << "vvedite: id, name i price tovara" << endl;
+    cin >> newProduct;
+    products.push_back(newProduct);
+    writefile("Product.txt", products);
+    cout << "kaif!\n\n";
+}
 
