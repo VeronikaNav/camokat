@@ -190,3 +190,128 @@ void files(const string& filename) {
         in.close();
     }
 }
+//класс курьеров
+class Curier {
+private:
+    int _id;
+    int _x, _y;
+    int _statex, _statey;
+    int _speed;
+    string _state;
+    Order _ord;
+    
+public:
+    Curier(int id, int x, int y,int statex,int statey,int speed,string state, Order ord) : _id(id), _x(x), _y(y),_statex(statex),_statey(statey),_speed(speed),_state(state), _ord(ord) {}
+    Curier() = default;
+    ~Curier() {}
+    
+
+    // Геттеры
+    int getX() const { return _x; }
+    int getY() const { return _y; }
+    int getId() const { return _id; }
+
+    int getXs() const { return _statex; }
+    int getYs() const { return _statey; }
+    std::string getState() const { return _state; }
+    Order getOrd() const { return _ord; }
+    int getSpeed() const { return _speed; }
+
+    // Сеттеры
+    void setId(int id) { _id = id; }
+    void setX(int x) { _x = x; }
+    void setY(int y) { _y = y; }
+    void setSX(int statex) { _statex = statex; }
+    void setSY(int statey) { _statey = statey; }
+    void setSpeed(int speed) { _speed = speed; }
+    void setState(const std::string& state) { _state = state; }
+    void setOrd(const Order& ord) { _ord = ord; }
+    friend istream& operator>>(istream& in, Curier& p) {
+        in >> p._id;
+        in >> p._x >> p._y;
+        in>>p._statex >> p._statey;
+        in >> p._speed;
+        in >> p._state;
+        in>> p._ord;
+        return in;
+    }
+    friend ostream& operator<<(ostream & out, const Curier& p) {
+            out << p._id << " " << p._x << " " << p._y<<" "<<p._statex<<" "<<p._statey<<" " << p._speed << " " << p._state << " " << p._ord;
+            return out;
+     }
+    
+};
+//функция удаления курьера
+void removeCurier() {
+    cout << "print storage id" << endl;
+    int id;
+    cin >> id;
+    vector<Storage>storages;
+    ReadFile("Storage.txt", storages);
+    for (auto& stor : storages) {
+        if (id == stor.getId()) {
+            cout << "print id curier" << endl;
+            int idc;
+            cin >> idc;
+            vector<Curier>cu;
+            cu = stor.getCur();
+            auto it = std::remove_if(cu.begin(), cu.end(), [idc](const Curier& kur) {return kur.getId() == idc; });
+            if (it != cu.end()) {
+                cu.erase(it, cu.end()); // Удаляем найденных курьеров
+                cout << "Curier with id " << idc << " removed." << endl;
+            }
+            else {
+                cout << "Curier with id " << idc << " not found." << endl;
+            }
+            stor.setCur(cu);
+           
+        }
+        else {
+            cout << "Warehome with id " << id << " not found." << endl;
+        }
+    }
+    writefile("Storage.txt", storages);
+
+}
+//функция добавления курьера на определённый склад
+void addCurier() {
+    int _id;
+    int _x, _y;
+    float _speed;
+    vector<Storage>stor;
+    vector<Curier>curi;
+    int q;
+    cout << "viberite sklad(id)" << endl;
+    showStorage();
+    cin >> q;      
+    ReadFile("Storage.txt", stor);
+    auto it = find_if(stor.begin(), stor.end(), [q](const Storage& s) { return s.getId() == q; });
+
+    if (it != stor.end()) {
+            Curier newCurier; // Создаем нового курьера
+            cout << "Enter the courier's details:" << endl;
+            cin >> _id;
+            _x = it->getX();
+            _y = it->getY();
+            cin >> _speed;
+            newCurier.setId(_id);
+            newCurier.setX(_x);
+            newCurier.setY(_y);
+            newCurier.setSX(_x);
+            newCurier.setSY(_y);
+            newCurier.setSpeed(_speed);
+            newCurier.setState("free");
+
+            it->adCurier(newCurier); // Добавляем курьера в склад
+            curi.push_back(newCurier); // Сохраняем курьера в общий список
+            cout << "The courier has been successfully added!" << endl;
+            writefile("Storage.txt", stor);
+            
+        }
+        else {
+            cout << "Склад с id " << q << " не найден." << endl;
+        }
+   
+}
+
+
