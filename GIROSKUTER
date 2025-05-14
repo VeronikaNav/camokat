@@ -1,0 +1,219 @@
+class Storage  {
+private:
+    int _id;
+    int _x, _y;
+    vector<Order>queue;
+    vector<Curier>cur;
+public:
+    Storage(int id, int x, int y): _id(id),_x(x),_y(y){}
+    Storage() = default;
+
+    friend istream& operator>>(istream& in, Storage& p) {
+        size_t ko;
+        size_t kc;
+        in >> p._id;
+        in>> p._x >> p._y >> ko>>kc;
+
+        p.queue.clear();
+        p.queue.resize(ko);
+        for (size_t i = 0;i < ko;i++) {
+            in >> p.queue[i];
+        }
+        p.cur.clear();
+        p.cur.resize(kc);
+        for (size_t i = 0;i < kc;i++) {
+            in >> p.cur[i];
+        }
+
+        return in;
+    }
+    friend ostream& operator<<(ostream& out, const Storage& p) {
+        out << " " << p._id << " " << p._x << " " << p._y << " " << p.queue.size() <<" "<< p.cur.size() << endl;
+        for (const auto& order : p.queue) {
+            out << order << endl;
+        }
+        for (const auto& curier : p.cur) {
+            out << curier << endl;
+        }
+        return out;
+    }
+    // Сеттеры
+    
+    void setId(int id) { _id = id; }
+    void setX(int x) { _x = x; }
+    void setY(int y) { _y = y; }
+    void setCur(const vector<Curier>& curiers) {cur = curiers;}
+
+    // Методы доступа
+    int getId() const { return _id; }
+    int getX() const { return _x; }
+    int getY() const { return _y; }
+    const std::vector<Curier>& getCur() const {return cur;}
+    const std::vector<Order>& getOrd() const { return queue; }
+
+   
+
+    void adQueue(const Order& order) {
+        queue.push_back(order);
+    }
+    // Методы для работы с курьерами
+    void adCurier(const Curier& curier) {
+        cur.push_back(curier);
+    }
+    void removeOrd() {   
+        if (!queue.empty()) { // Проверяем, что вектор не пуст
+            queue.erase(queue.begin()); // Удаляем первый элемент
+        }
+    }
+};
+//функция передвижения курьера и промотки времени
+void updatePosition() {
+    unsigned int time;
+    int x, y;
+    string st;
+    cout << "vvedite vremia" << endl;
+    cin >> time;
+    vector<Storage>storages;
+    ReadFile("Storage.txt", storages);
+    for ( auto& stor : storages) {
+        vector<Curier>cu;
+        
+        Order o;
+        cu = stor.getCur();
+        
+        
+        for ( auto& kur : cu) {
+            for (int i = 0;i < time;i++) {
+                if (kur.getState() == "delivers") {
+                    o = kur.getOrd();
+                    if (kur.getX() < o.getX()) {
+                        x = kur.getX();
+                        x += (kur.getSpeed());
+                        kur.setX(x);
+                    }
+
+                    if (kur.getY() < o.getY()) {
+                        y = kur.getY();
+                        y += (kur.getSpeed());
+                        kur.setY(y);
+                    }
+                    if (kur.getX() >= o.getX() && kur.getY() >= o.getY()) {
+                        st = "is_returning";
+                        kur.setOrd(Order());
+                        kur.setState(st);
+                    }
+                }
+                else if (kur.getState() == "is_returning") {
+                    if (kur.getX() > kur.getXs()) {
+                        x = kur.getX();
+                        x -= (kur.getSpeed());
+                        kur.setX(x);
+                    }
+
+                    if (kur.getY() > kur.getYs()) {
+                        y = kur.getY();
+                        y -= (kur.getSpeed());
+                        kur.setY(y);
+                    }
+                    if (kur.getX() <= kur.getXs() && kur.getY() <= kur.getYs()) {
+                        st = "free";
+                        kur.setX(kur.getXs());
+                        kur.setY(kur.getYs());
+                        kur.setState(st);
+                    }
+
+                }
+                else if (kur.getState() == "free") {
+                    kur.setState("delivers");
+                    if (!stor.getOrd().empty()) {
+                        kur.setOrd(stor.getOrd()[0]);
+                        stor.removeOrd();
+                        i--;
+                    }
+                }
+                   
+            }
+            stor.setCur(cu);
+        }
+    }
+    
+    writefile("Storage.txt", storages);
+}
+// Функция для добавления объекта home в вектор
+void addStorage() {
+    int id, x, y;
+    vector<Storage>storages;
+    ReadFile("Storage.txt", storages);
+    Storage newStorage;
+    cout << "Enter the Order ID: ";
+    cin >> id;
+    newStorage.setId(id);
+    cout << "Enter the Order coordinates (x y): ";
+    cin >> x >> y;
+    newStorage.setX(x);
+    newStorage.setY(y);
+    
+    storages.push_back(newStorage); // Добавляем новый дом в вектор
+    writefile("Storage.txt", storages);
+    cout << "kaif!\n\n";
+}
+//функция показывающая все склады
+void showStorage() {
+    vector<Storage>storages;
+    ReadFile("Storage.txt", storages);
+    for (const auto& storage : storages) {
+        cout << storage << endl;
+    }
+}
+//мэйн
+int main() {
+    int sw = 0;
+     files("Storage.txt");
+     files("Product.txt");
+       
+    while (1) {
+        cout << "  _____________________________" << endl;
+        cout << "|  CHOOSE WHAT YOU WANT TO DO\t|" << endl;
+        cout << "|      ADD PRODUCT(enter-1)\t|" << endl;
+        cout << "|      ADD STORAGE(enter-2)\t|" << endl;
+        cout << "|      SHOW STORAGE(enter-3)\t|" << endl;
+        cout << "|       ADD ORDER(enter-4)\t|" << endl;
+        cout << "|       ADD CURIER(enter-5)\t|" << endl;
+        cout << "|       TIME TRAVEL(enter-6)\t|" << endl;
+        cout << "|      REMOVE CURIER(enter-7)\t|" << endl;
+        cout << "|          EXIT(enter-0)\t|" << endl;
+        cout << "  _____________________________" << endl;
+
+        cin >> sw;
+        switch (sw) {
+        case 1:
+            addProduct();
+            break;
+        case 2:
+            addStorage();
+            break;
+        case 3:
+            showStorage();
+            break;
+        case 4:
+            addOrder();
+            break;
+        case 5:
+            addCurier();
+            break;
+        case 6:
+            updatePosition();
+            break;
+        case 7:
+            removeCurier();
+            break;
+        case 0:
+            cout << "  _________________" << endl;
+            cout << "|  TO BE CONTINUE  |" << endl;
+            cout << "  _________________" << endl;
+            return 0;
+            break;
+        }
+    }
+}
+
