@@ -83,4 +83,110 @@ void addProduct() {
     writefile("Product.txt", products);
     cout << "kaif!\n\n";
 }
+class Order {
+private:
+    int _id;
+    int _x, _y;
+    vector<Product>products;
 
+public:
+    Order(int id, int x, int y) : _id(id), _x(x), _y(y) {}
+    Order() = default;
+    ~Order() {}
+    int getX() const { return _x; }
+    int getY()const { return _y; }
+    // Сеттеры
+    void setId(int id) { _id = id; }
+    void setX(int x) { _x = x; }
+    void setY(int y) { _y = y; }
+    // Перегрузка оператора ввода
+    friend istream& operator>>(istream& in, Order& p) {
+        size_t kp;
+        in >> p._id;
+        in >> p._x >> p._y;
+        in>> kp;
+        p.products.clear();
+        p.products.resize(kp);
+        for (size_t i = 0;i < kp;i++) {
+            in >> p.products[i];
+        }
+        return in;
+    }
+    friend ostream& operator<<(ostream& out, const Order& p) {
+        out << p._id << " " << p._x << " " << p._y << " " << p.products.size(); // Основные данные заказа
+        // Затем продукты. Формат вывода каждого продукта должен быть совместим с Product::operator>>
+        // Если Product::operator>> читает продукт и останавливается (например, на \n),
+        // то после основных данных заказа нужен \n, и после каждого продукта \n.
+        out << endl;
+        for (const auto& product : p.products) {
+            out << product << endl; // Предполагаем, что Product::operator<< пишет продукт и завершает строкой
+        }
+        return out;
+    }
+    void adProduct(const Product& product) {
+        products.push_back(product);
+    }
+};
+//функция добавления заказа на определённый склад
+void addOrder() {
+    int idd, x, y;
+    vector<Order>orders;
+    vector<Storage>stor;
+    ReadFile("Order.txt", orders);
+    int q;
+    cout << "viberite sklad(id)" << endl;
+    showStorage();
+    cin >> q;
+    ReadFile("Storage.txt", stor);
+    auto it = find_if(stor.begin(), stor.end(), [q](const Storage& s) { return s.getId() == q; });
+
+    if (it != stor.end()) {
+
+        Order newOrder;
+        cout << "Enter the Order ID: ";
+        cin >> idd;
+        newOrder.setId(idd);
+        cout << "Enter the Order coordinates (x y): ";
+        cin >> x >> y;
+        newOrder.setX(x);
+        newOrder.setY(y);
+        showProduct();
+        vector<Product>product;
+        ReadFile("Product.txt", product);
+        int id;
+        while (1) {
+            cout << "select a product from the list and enter its id(exit-0:) ";
+            cin >> id;
+            if (id == 0)
+                break;
+            for (const auto& i : product) {
+                if (id == i.getId())
+                    newOrder.adProduct(i);
+            }
+        }
+        it->adQueue(newOrder); // Добавляем курьера в склад
+        orders.push_back(newOrder);
+        writefile("Order.txt", orders);
+        cout << "The courier has been successfully added!" << endl;
+        writefile("Storage.txt", stor);
+    }
+    else {
+        cout << "Storage with ID " << q << " not found." << endl;
+    }
+}
+//функция проверки наличия файла и создания его если его небыло до этого
+void files(const string& filename) {
+    int n = 0;
+    ifstream in(filename);
+    if (!in.is_open()) {
+        ofstream out(filename);
+        if (!out.is_open())
+            return;
+        out << n << endl;
+        out.close();
+    }
+    else
+    {
+        in.close();
+    }
+}
