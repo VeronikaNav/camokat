@@ -114,13 +114,10 @@ public:
         return in;
     }
     friend ostream& operator<<(ostream& out, const Order& p) {
-        out << p._id << " " << p._x << " " << p._y << " " << p.products.size(); // Основные данные заказа
-        // Затем продукты. Формат вывода каждого продукта должен быть совместим с Product::operator>>
-        // Если Product::operator>> читает продукт и останавливается (например, на \n),
-        // то после основных данных заказа нужен \n, и после каждого продукта \n.
+        out << p._id << " " << p._x << " " << p._y << " " << p.products.size(); 
         out << endl;
         for (const auto& product : p.products) {
-            out << product << endl; // Предполагаем, что Product::operator<< пишет продукт и завершает строкой
+            out << product << endl; 
         }
         return out;
     }
