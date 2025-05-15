@@ -83,6 +83,7 @@ void addProduct() {
     writefile("Product.txt", products);
     cout << "kaif!\n\n";
 }
+//класс заказов
 class Order {
 private:
     int _id;
@@ -127,53 +128,6 @@ public:
         products.push_back(product);
     }
 };
-//функция добавления заказа на определённый склад
-void addOrder() {
-    int idd, x, y;
-    vector<Order>orders;
-    vector<Storage>stor;
-    ReadFile("Order.txt", orders);
-    int q;
-    cout << "viberite sklad(id)" << endl;
-    showStorage();
-    cin >> q;
-    ReadFile("Storage.txt", stor);
-    auto it = find_if(stor.begin(), stor.end(), [q](const Storage& s) { return s.getId() == q; });
-
-    if (it != stor.end()) {
-
-        Order newOrder;
-        cout << "Enter the Order ID: ";
-        cin >> idd;
-        newOrder.setId(idd);
-        cout << "Enter the Order coordinates (x y): ";
-        cin >> x >> y;
-        newOrder.setX(x);
-        newOrder.setY(y);
-        showProduct();
-        vector<Product>product;
-        ReadFile("Product.txt", product);
-        int id;
-        while (1) {
-            cout << "select a product from the list and enter its id(exit-0:) ";
-            cin >> id;
-            if (id == 0)
-                break;
-            for (const auto& i : product) {
-                if (id == i.getId())
-                    newOrder.adProduct(i);
-            }
-        }
-        it->adQueue(newOrder); // Добавляем курьера в склад
-        orders.push_back(newOrder);
-        writefile("Order.txt", orders);
-        cout << "The courier has been successfully added!" << endl;
-        writefile("Storage.txt", stor);
-    }
-    else {
-        cout << "Storage with ID " << q << " not found." << endl;
-    }
-}
 //функция проверки наличия файла и создания его если его небыло до этого
 void files(const string& filename) {
     int n = 0;
@@ -241,6 +195,82 @@ public:
      }
     
 };
+class Storage  {
+private:
+    int _id;
+    int _x, _y;
+    vector<Order>queue;
+    vector<Curier>cur;
+public:
+    Storage(int id, int x, int y): _id(id),_x(x),_y(y){}
+    Storage() = default;
+
+    friend istream& operator>>(istream& in, Storage& p) {
+        size_t ko;
+        size_t kc;
+        in >> p._id;
+        in>> p._x >> p._y >> ko>>kc;
+
+        p.queue.clear();
+        p.queue.resize(ko);
+        for (size_t i = 0;i < ko;i++) {
+            in >> p.queue[i];
+        }
+        p.cur.clear();
+        p.cur.resize(kc);
+        for (size_t i = 0;i < kc;i++) {
+            in >> p.cur[i];
+        }
+
+        return in;
+    }
+    friend ostream& operator<<(ostream& out, const Storage& p) {
+        out << " " << p._id << " " << p._x << " " << p._y << " " << p.queue.size() <<" "<< p.cur.size() << endl;
+        for (const auto& order : p.queue) {
+            out << order << endl;
+        }
+        for (const auto& curier : p.cur) {
+            out << curier << endl;
+        }
+        return out;
+    }
+    // Сеттеры
+    
+    void setId(int id) { _id = id; }
+    void setX(int x) { _x = x; }
+    void setY(int y) { _y = y; }
+    void setCur(const vector<Curier>& curiers) {cur = curiers;}
+
+    // Методы доступа
+    int getId() const { return _id; }
+    int getX() const { return _x; }
+    int getY() const { return _y; }
+    const std::vector<Curier>& getCur() const {return cur;}
+    const std::vector<Order>& getOrd() const { return queue; }
+
+   
+
+    void adQueue(const Order& order) {
+        queue.push_back(order);
+    }
+    // Методы для работы с курьерами
+    void adCurier(const Curier& curier) {
+        cur.push_back(curier);
+    }
+    void removeOrd() {   
+        if (!queue.empty()) { // Проверяем, что вектор не пуст
+            queue.erase(queue.begin()); // Удаляем первый элемент
+        }
+    }
+};
+//функция показывающая все склады
+void showStorage() {
+    vector<Storage>storages;
+    ReadFile("Storage.txt", storages);
+    for (const auto& storage : storages) {
+        cout << storage << endl;
+    }
+}
 //функция удаления курьера
 void removeCurier() {
     cout << "print storage id" << endl;
@@ -313,76 +343,6 @@ void addCurier() {
         }
    
 }
-
-
-class Storage  {
-private:
-    int _id;
-    int _x, _y;
-    vector<Order>queue;
-    vector<Curier>cur;
-public:
-    Storage(int id, int x, int y): _id(id),_x(x),_y(y){}
-    Storage() = default;
-
-    friend istream& operator>>(istream& in, Storage& p) {
-        size_t ko;
-        size_t kc;
-        in >> p._id;
-        in>> p._x >> p._y >> ko>>kc;
-
-        p.queue.clear();
-        p.queue.resize(ko);
-        for (size_t i = 0;i < ko;i++) {
-            in >> p.queue[i];
-        }
-        p.cur.clear();
-        p.cur.resize(kc);
-        for (size_t i = 0;i < kc;i++) {
-            in >> p.cur[i];
-        }
-
-        return in;
-    }
-    friend ostream& operator<<(ostream& out, const Storage& p) {
-        out << " " << p._id << " " << p._x << " " << p._y << " " << p.queue.size() <<" "<< p.cur.size() << endl;
-        for (const auto& order : p.queue) {
-            out << order << endl;
-        }
-        for (const auto& curier : p.cur) {
-            out << curier << endl;
-        }
-        return out;
-    }
-    // Сеттеры
-    
-    void setId(int id) { _id = id; }
-    void setX(int x) { _x = x; }
-    void setY(int y) { _y = y; }
-    void setCur(const vector<Curier>& curiers) {cur = curiers;}
-
-    // Методы доступа
-    int getId() const { return _id; }
-    int getX() const { return _x; }
-    int getY() const { return _y; }
-    const std::vector<Curier>& getCur() const {return cur;}
-    const std::vector<Order>& getOrd() const { return queue; }
-
-   
-
-    void adQueue(const Order& order) {
-        queue.push_back(order);
-    }
-    // Методы для работы с курьерами
-    void adCurier(const Curier& curier) {
-        cur.push_back(curier);
-    }
-    void removeOrd() {   
-        if (!queue.empty()) { // Проверяем, что вектор не пуст
-            queue.erase(queue.begin()); // Удаляем первый элемент
-        }
-    }
-};
 //функция передвижения курьера и промотки времени
 void updatePosition() {
     unsigned int time;
@@ -474,14 +434,54 @@ void addStorage() {
     writefile("Storage.txt", storages);
     cout << "kaif!\n\n";
 }
-//функция показывающая все склады
-void showStorage() {
-    vector<Storage>storages;
-    ReadFile("Storage.txt", storages);
-    for (const auto& storage : storages) {
-        cout << storage << endl;
+//функция добавления заказа на определённый склад
+void addOrder() {
+    int idd, x, y;
+    vector<Order>orders;
+    vector<Storage>stor;
+    ReadFile("Order.txt", orders);
+    int q;
+    cout << "viberite sklad(id)" << endl;
+    showStorage();
+    cin >> q;
+    ReadFile("Storage.txt", stor);
+    auto it = find_if(stor.begin(), stor.end(), [q](const Storage& s) { return s.getId() == q; });
+
+    if (it != stor.end()) {
+
+        Order newOrder;
+        cout << "Enter the Order ID: ";
+        cin >> idd;
+        newOrder.setId(idd);
+        cout << "Enter the Order coordinates (x y): ";
+        cin >> x >> y;
+        newOrder.setX(x);
+        newOrder.setY(y);
+        showProduct();
+        vector<Product>product;
+        ReadFile("Product.txt", product);
+        int id;
+        while (1) {
+            cout << "select a product from the list and enter its id(exit-0:) ";
+            cin >> id;
+            if (id == 0)
+                break;
+            for (const auto& i : product) {
+                if (id == i.getId())
+                    newOrder.adProduct(i);
+            }
+        }
+        it->adQueue(newOrder); // Добавляем курьера в склад
+        orders.push_back(newOrder);
+        writefile("Order.txt", orders);
+        cout << "The courier has been successfully added!" << endl;
+        writefile("Storage.txt", stor);
+    }
+    else {
+        cout << "Storage with ID " << q << " not found." << endl;
     }
 }
+
 //мэйн
 int main() {
     int sw = 0;
